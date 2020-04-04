@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BackEnd</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Hot Onion Node & Mongo db</h1>
+        <p id="productName"></p>
+        <p>Add a product to database</p>
+        <div  class="row">
+            <input style="margin-bottom: 10px;" type="text" class="form-control" placeholder="Category" id="category">
+            <input style="margin-bottom: 10px;" type="text" class="form-control" placeholder="Product Name" id="name">
+            <input style="margin-bottom: 10px;" type="text" class="form-control" placeholder="Product description" id="description">
+            <input style="margin-bottom: 10px;" type="text" class="form-control" placeholder="Price" id="price">
+            <input style="margin-bottom: 10px;" type="text" class="form-control" placeholder="Stock" id="stock">
+            <input style="margin-bottom: 10px;" type="text" class="form-control" placeholder="Image URL" id="img_url">
+            <button class="btn btn-primary" id="addProduct"> Add Product</button>
+        </div>
+        <div style="padding: 20px;">
+            <p style="display: none; color: green;" id="successMessage">
+                <small>Product Added Successfully </small>
+            </p>
+            <ul id="display-product-list">
+            </ul>
+        </div>
+
+    </div>
+    <script>
+        //get data (data receive from server)
+        fetch('http://localhost:4200/products')
+        .then(res => res.json())
+        .then(data=>{
+            displayProducts(data);
+        });
+
+        function displayProducts(data){
+            const productContainer = document.getElementById('display-product-list');
+            for (let i = 0; i < data.length; i++) {
+                const product = data[i];
+                appendProduct(product, productContainer);
+            }
+        }
+        function appendProduct(product, productContainer){
+            const item = document.createElement('li');
+            item.innerText =
+            ` ${product.name}:
+            ${product.description}:
+            $ ${product.price}:
+            available: ${product.stock}:
+            ${product.category} ` ;
+            productContainer.appendChild(item);
+        }
+
+        //POST data to the serve
+        const btnAddUser = document.getElementById('addProduct');
+        btnAddUser.addEventListener('click', () => {
+            const category = document.getElementById('category').value;
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const price = document.getElementById('price').value;
+            const stock = document.getElementById('stock').value;
+            const img_url = document.getElementById('img_url').value;
+            const product = {category, name, description, price, stock, img_url,};
+                console.log(product);
+            //Post send To Server
+            fetch('http://localhost:4200/addProduct', {
+                method:'POST',
+                body:JSON.stringify(product),
+                headers: {
+                   "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                updateProduct(data);
+                    //clean input area
+                    document.getElementById('category').value = '';
+                    document.getElementById('name').value = '';
+                    document.getElementById('description').value = '';
+                    document.getElementById('price').value = '';
+                    document.getElementById('stock').value = '';
+                    document.getElementById('img_url').value = '';
+
+                //Show success message
+                const success = document.getElementById('successMessage')
+                success.style.display = 'block';
+                setTimeout(()=>{
+                    success.style.display = 'none';
+                }, 2000)
+
+            })
+        })
+
+        function updateProduct(product){
+            const productContainer = document.getElementById('display-product-list');
+            appendProduct(product, productContainer);
+            document.getElementById('productName').innerText = product.name;
+        }
+    </script>
+</body>
+</html>
